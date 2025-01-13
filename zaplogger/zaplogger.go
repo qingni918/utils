@@ -12,11 +12,13 @@ type ZapLogger struct {
 	atom   *zap.AtomicLevel
 }
 
+// devMode - panic log then exit.
+
 // outputMode
 // 0: normal log
 // 1: json-string log
 
-func NewLogger(serviceID string, loggerLevel zapcore.Level, outputMode int) *ZapLogger {
+func NewLogger(serviceID string, loggerLevel zapcore.Level, outputMode int, devMode bool) *ZapLogger {
 
 	atom := zap.NewAtomicLevel()
 	atom.SetLevel(loggerLevel)
@@ -54,6 +56,9 @@ func NewLogger(serviceID string, loggerLevel zapcore.Level, outputMode int) *Zap
 	multiCore := zapcore.NewTee(cores...)
 
 	logger := zap.New(multiCore, zap.AddCaller(), zap.AddCallerSkip(1))
+	if devMode {
+		logger = logger.WithOptions(zap.Development())
+	}
 
 	return &ZapLogger{logger.Named(serviceID), &atom}
 }
