@@ -75,7 +75,7 @@ func (zl *ZapLogger) Fatal(msg string, fields ...zapcore.Field) {
 
 // panic
 func (zl *ZapLogger) Panic(msg string, fields ...zapcore.Field) {
-	zl.logger.Panic(msg, fields...)
+	zl.logger.DPanic(msg, fields...)
 }
 
 // critical fixme: don't support Critical
