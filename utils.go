@@ -98,3 +98,13 @@ func GetCallerWithSkip(skip int) string {
 	}
 	return callerStr
 }
+
+// ReadFile 去除BOM文件格式
+func ReadFile(fp string) ([]byte, error) {
+	fileContent, err := os.ReadFile(fp)
+	if err != nil {
+		return nil, err
+	}
+	fileContent = bytes.TrimPrefix(fileContent, []byte{239, 187, 191})
+	return fileContent, err
+}
