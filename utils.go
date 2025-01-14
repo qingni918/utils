@@ -76,8 +76,8 @@ func GetLogger() *Logger {
 	return &Logger{lg}
 }
 
-func GetZapLoggerWith(serviceID string, level zapcore.Level, outputMode int, bdInfo string) *zaplogger.ZapLogger {
-	logger := zaplogger.NewLogger(serviceID, level, outputMode)
+func GetZapLoggerWith(serviceID string, level zapcore.Level, outputMode int, bdInfo string, devMode bool) *zaplogger.ZapLogger {
+	logger := zaplogger.NewLogger(serviceID, level, outputMode, devMode)
 	return logger
 }
 

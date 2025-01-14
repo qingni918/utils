@@ -2,15 +2,15 @@ package zaplogger
 
 import (
 	"encoding/json"
-	"net/http"
+	"fmt"
+	circuit "github.com/rubyist/circuitbreaker"
 	"go.uber.org/zap/zapcore"
+	"log"
+	"net/http"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
-	"fmt"
-	"runtime"
-	"log"
-	"github.com/rubyist/circuitbreaker"
 )
 
 // fixme: unmarshal as map, to keep fields alive
@@ -24,7 +24,7 @@ type ELKLogger struct {
 }
 
 type ELKLoggerWriter struct {
-	url string
+	url       string
 	serviceID string
 
 	// post buf
@@ -32,9 +32,9 @@ type ELKLoggerWriter struct {
 	// post notice
 	bulkTicker *time.Ticker
 	bulkSwitch chan byte
-	bulkSize int
+	bulkSize   int
 
-	cb  	*circuit.Breaker
+	cb *circuit.Breaker
 	sync.Mutex
 }
 
@@ -42,14 +42,14 @@ func (ew *ELKLoggerWriter) Init() {
 
 	ew.bulkTicker = time.NewTicker(time.Second)
 	ew.bulkSwitch = make(chan byte, 5)
-	ew.cb = circuit.NewConsecutiveBreaker(3)
+	ew.cb = circuit.NewThresholdBreaker(3)
 	go func() {
 		for {
-			select{
-			case <- ew.bulkTicker.C:
+			select {
+			case <-ew.bulkTicker.C:
 				ew.bulkSwitch <- 1
 
-			case <- ew.bulkSwitch:
+			case <-ew.bulkSwitch:
 				if err := ew.post(); err != nil {
 					if !ew.cb.Tripped() {
 						ew.cb.Fail()
@@ -80,7 +80,7 @@ func (ew *ELKLoggerWriter) Init() {
 				}
 			}
 		}
-	} ()
+	}()
 }
 
 func (ew *ELKLoggerWriter) Write(logDetail []byte) (int, error) {
@@ -134,7 +134,9 @@ func (ew *ELKLoggerWriter) post() error {
 
 	ew.Lock()
 	defer ew.Unlock()
-	if ew.postBuff == "" { return nil }
+	if ew.postBuff == "" {
+		return nil
+	}
 
 	body := strings.NewReader(ew.postBuff)
 
@@ -146,7 +148,9 @@ func (ew *ELKLoggerWriter) post() error {
 	header.Add("Content-Type", "application/json")
 	req.Header = header
 	rep, err := http.DefaultClient.Do(req)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	if rep.StatusCode != 200 {
 		_, fn, ln, _ := runtime.Caller(0)
@@ -156,7 +160,7 @@ func (ew *ELKLoggerWriter) post() error {
 	}
 	ew.resetPostBuff()
 	rep.Body.Close()
-	return  nil
+	return nil
 }
 
 func (ew *ELKLoggerWriter) resetPostBuff() {
