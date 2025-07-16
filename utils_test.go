@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"testing"
 )
 
@@ -26,4 +27,11 @@ func TestEncodeGzip(t *testing.T) {
 	decodeStr, err := DecodeGzip(encodeStr)
 	Panic(err)
 	fmt.Println("decode:", string(decodeStr))
+}
+
+func TestLMHash(t *testing.T) {
+	CalcFuncCostTime("testLMHash", func() {
+		//log.Println(LMHash("p@ssw0rd"))
+		log.Println(LMHash("123456"))
+	})
 }
