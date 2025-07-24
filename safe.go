@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/qingni918/utils/zaplogger"
+	"github.com/qingni918/utils/logger_aggregate"
 	"go.uber.org/zap"
 	"os"
 	"runtime"
@@ -10,7 +10,7 @@ import (
 
 type SafeGoroutineFunc func()
 
-func SafeGoPanicHandler(err interface{}, logger *zaplogger.ZapLogger) {
+func SafeGoPanicHandler(err interface{}, logger logger_aggregate.Logger) {
 
 	info := fmt.Sprintf("catch PANIC(%v), CALLSTACK list:\n", err)
 	info = info + *RetrieveCallStack()
@@ -21,7 +21,7 @@ func SafeGoPanicHandler(err interface{}, logger *zaplogger.ZapLogger) {
 	}
 }
 
-func SafeGoPanicHandlerWithExtraInfo(err interface{}, extraInfo *string, logger *zaplogger.ZapLogger) {
+func SafeGoPanicHandlerWithExtraInfo(err interface{}, extraInfo *string, logger logger_aggregate.Logger) {
 
 	extra := ""
 	if extraInfo != nil {
@@ -36,7 +36,7 @@ func SafeGoPanicHandlerWithExtraInfo(err interface{}, extraInfo *string, logger 
 	}
 }
 
-func SafeGoPanicHttpHandler(err interface{}, logger *zaplogger.ZapLogger, request *string) {
+func SafeGoPanicHttpHandler(err interface{}, logger logger_aggregate.Logger, request *string) {
 
 	info := fmt.Sprintf("httpHandler catch PANIC(%v), CALLSTACK list:\n", err)
 	info = info + *RetrieveCallStack()
@@ -47,7 +47,7 @@ func SafeGoPanicHttpHandler(err interface{}, logger *zaplogger.ZapLogger, reques
 	}
 }
 
-func SafeGoroutineStartWith(routine SafeGoroutineFunc, logger *zaplogger.ZapLogger) {
+func SafeGoroutineStartWith(routine SafeGoroutineFunc, logger logger_aggregate.Logger) {
 
 	go func() {
 		defer func() {
