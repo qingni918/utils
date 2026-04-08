@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.23.11
 
 require (
+	github.com/larksuite/oapi-sdk-go/v3 v3.5.2
 	github.com/rubyist/circuitbreaker v2.2.1+incompatible
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.40.0

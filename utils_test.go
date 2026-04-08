@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	larkcontact "github.com/larksuite/oapi-sdk-go/v3/service/contact/v3"
+	"github.com/qingni918/utils/feishuclient"
 	"log"
 	"testing"
 )
@@ -34,4 +36,47 @@ func TestLMHash(t *testing.T) {
 		//log.Println(LMHash("p@ssw0rd"))
 		log.Println(LMHash("123456"))
 	})
+}
+
+func TestFeishuClient(t *testing.T) {
+
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	// cli_a7f766e76d60d013
+	// I5AyPWY6MAuBx6hhDyAFxgxo7nN8HfYm
+	fc := feishuclient.NewClient("cli_a7f766e76d60d013", "I5AyPWY6MAuBx6hhDyAFxgxo7nN8HfYm")
+	fc.SetPageSize(50)
+	departments := fc.DepartmentChildrenQueryAll("0", "", true)
+
+	type Department struct {
+		*larkcontact.Department
+		Children []*Department `json:"children,omitempty"`
+	}
+
+	depts := make(map[string]*Department, len(departments))
+
+	// 1. 建立索引
+	for _, v := range departments {
+		depts[*v.OpenDepartmentId] = &Department{
+			Department: v,
+		}
+	}
+
+	// 2. 挂载父子关系
+	var rootDepts []*Department
+	for _, v := range departments {
+		id := *v.OpenDepartmentId
+		pid := *v.ParentDepartmentId
+
+		if pid == "0" {
+			rootDepts = append(rootDepts, depts[id])
+			continue
+		}
+
+		if parent, ok := depts[pid]; ok {
+			parent.Children = append(parent.Children, depts[id])
+		}
+	}
+
+	log.Println(len(departments), JsonString(rootDepts))
 }
